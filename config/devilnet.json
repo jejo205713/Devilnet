@@ -1,0 +1,67 @@
+{
+  "feature_thresholds": {
+    "failed_login_threshold": 5,
+    "unique_users_threshold": 10,
+    "failed_to_success_ratio_threshold": 0.8,
+    "min_inter_attempt_seconds": 2,
+    "login_time_std_devs": 3.0,
+    "new_ip_risk_boost": 0.3,
+    "first_sudo_risk_boost": 0.25,
+    "failed_sudo_threshold": 3
+  },
+  "alert_levels": {
+    "low_threshold": 0.4,
+    "medium_threshold": 0.6,
+    "high_threshold": 0.8,
+    "critical_threshold": 0.9
+  },
+  "incident_response": {
+    "lock_account_at_risk_level": "HIGH",
+    "block_ip_at_risk_level": "HIGH",
+    "terminate_session_at_risk_level": "CRITICAL",
+    "lock_account_cooldown": 300,
+    "block_ip_cooldown": 600,
+    "terminate_session_cooldown": 180,
+    "enable_automated_actions": false
+  },
+  "log_sources": {
+    "auth_log": "/var/log/auth.log",
+    "syslog": "/var/log/syslog",
+    "audit_log": "/var/log/audit/audit.log",
+    "fail2ban_log": "/var/log/fail2ban.log",
+    "read_mode": "file",
+    "tail_poll_interval_seconds": 5,
+    "tail_batch_size": 1000,
+    "state_dir": "/var/lib/devilnet",
+    "alert_dir": "/var/log/devilnet/alerts",
+    "report_dir": "/var/log/devilnet/reports"
+  },
+  "ml_pipeline": {
+    "contamination": 0.1,
+    "n_estimators": 100,
+    "max_samples": 256,
+    "random_state": 42,
+    "feature_window_minutes": 5,
+    "min_samples_for_training": 1000,
+    "training_data_file": "baseline_events.jsonl",
+    "model_file": "isolation_forest.pkl",
+    "batch_size": 100
+  },
+  "security_policy": {
+    "execution_user": "devilnet",
+    "enforce_non_root": true,
+    "allow_network": false,
+    "allow_eval": false,
+    "allow_shell_exec": false,
+    "readonly_paths": [
+      "/var/log/auth.log",
+      "/var/log/syslog",
+      "/var/log/audit/",
+      "/var/log/fail2ban.log"
+    ],
+    "writable_paths": [
+      "/var/lib/devilnet/",
+      "/var/log/devilnet/"
+    ]
+  }
+}

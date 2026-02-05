@@ -1,0 +1,87 @@
+# AppArmor Profile for Devilnet ML Engine
+# Save to: /etc/apparmor.d/devilnet-ml
+# Load with: sudo apparmor_parser -r /etc/apparmor.d/devilnet-ml
+# Enforce with: sudo aa-enforce devilnet-ml
+
+#include <tunables/global>
+
+profile devilnet-ml flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+    #include <abstractions/nameservice>
+    #include <abstractions/python>
+    
+    # Process capabilities
+    capability setgid,
+    capability setuid,
+    
+    # Read-only access to system logs
+    /var/log/auth.log r,
+    /var/log/syslog r,
+    /var/log/audit/** r,
+    /var/log/fail2ban.log r,
+    /var/log/*.gz r,
+    /var/log/*.1 r,
+    
+    # State directory (read-write for ML state)
+    /var/lib/devilnet/ rw,
+    /var/lib/devilnet/** rw,
+    owner /var/lib/devilnet/** rw,
+    
+    # Report and alert directories
+    /var/log/devilnet/ rw,
+    /var/log/devilnet/** rw,
+    owner /var/log/devilnet/** rw,
+    
+    # Temp files for state tracking
+    /tmp/devilnet_tail_*.state rw,
+    owner /tmp/devilnet_tail_*.state rw,
+    
+    # Python runtime
+    /usr/bin/python3 rix,
+    /usr/bin/python3.* rix,
+    /usr/lib/python3** r,
+    /usr/lib/python3/**/ r,
+    /usr/lib/python3/** r,
+    
+    # Shared libraries
+    /usr/lib/x86_64-linux-gnu/** mr,
+    /lib/x86_64-linux-gnu/** mr,
+    
+    # Virtual environment
+    /var/lib/devilnet/venv/** r,
+    /var/lib/devilnet/venv/lib/** mr,
+    /var/lib/devilnet/venv/bin/** rix,
+    
+    # Application code
+    /opt/devilnet/** r,
+    /opt/devilnet/config/** r,
+    
+    # Proc access (monitoring)
+    @{PROC}/@{pid}/fd/ r,
+    @{PROC}/@{pid}/fd/** r,
+    @{PROC}/@{pid}/stat r,
+    @{PROC}/meminfo r,
+    @{PROC}/loadavg r,
+    
+    # Deny network access completely
+    deny network,
+    deny /sys/class/net/ r,
+    deny /proc/net/** r,
+    
+    # Deny shell access
+    deny /bin/bash rwix,
+    deny /bin/sh rwix,
+    deny /usr/bin/bash rwix,
+    deny /usr/bin/sh rwix,
+    deny /usr/bin/sudo rwix,
+    deny /usr/bin/su rwix,
+    
+    # Deny debug/trace
+    deny ptrace,
+    
+    # Deny capability escalation
+    deny capability dac_override,
+    deny capability net_admin,
+    deny capability sys_admin,
+    deny capability sys_ptrace,
+}
